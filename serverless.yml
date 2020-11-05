@@ -16,7 +16,7 @@ provider:
     - Effect: "Allow"
       Action:
         - "ssm:GetParameters"
-      Resource: "arn:aws:iam::519511952445:user/Rafaek"
+      Resource: ${env:SSM_ENV}
 
 functions:
   getParameter:
