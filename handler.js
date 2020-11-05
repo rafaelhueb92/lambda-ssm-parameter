@@ -1,33 +1,25 @@
 "use strict";
 
 const ssm = new (require("aws-sdk/clients/ssm"))();
-const kms = new (require("aws-sdk/clients/kms"))();
+
+const httpResponse = (statusCode, body) => ({
+  statusCode,
+  body: JSON.stringify(body, null, 2),
+});
 
 module.exports.getParameter = async (event) => {
   try {
-    const testkeyEncrypt = await ssm
+    const testkey = await ssm
       .getParameters({
         Names: ["/my-app/testKey"],
+        WithDecryption: true,
       })
-      .promise()
-
-    console.log("Encrypted value", testkeyEncrypt.Parameters[0].Value);
-
-    const testkey = await kms
-      .decrypt({ CiphertextBlob: testkeyEncrypt.Parameters[0].Value })
       .promise();
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(
-        {
-          message: "Your testKey was retrivied",
-          testkey,
-        },
-        null,
-        2
-      ),
-    };
+    return httpResponse(200, {
+      message: "Your testKey was retrivied",
+      key: testkey.Parameters[0].Value,
+    });
   } catch (ex) {
     console.error(`Error`, ex);
     return {
